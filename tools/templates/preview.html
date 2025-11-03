@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>预览：{{ sheet_name }}</title>
+  <style>
+    body { font-family: -apple-system, Arial, sans-serif; margin: 24px; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid #ddd; padding: 6px; font-size: 13px; }
+    th { background: #f5f5f5; }
+    caption { text-align: left; font-weight: bold; margin-bottom: 8px; }
+  </style>
+</head>
+<body>
+  <h3>Excel 预览（工作表：{{ sheet_name }}）</h3>
+  <p>Excel：{{ excel_path }}。新增行：{{ added }}。公式预览为公式文本，实际数值需在 Excel 中计算。</p>
+  <p>
+    <a href="/download?excel={{ excel_path }}" target="_blank">另存为（下载 Excel）</a>
+    &nbsp;|&nbsp;
+    <a href="/" target="_self">返回上传</a>
+  </p>
+  <table>
+    <caption>前 50 行（最多 30 列）</caption>
+    <thead>
+      <tr>
+        {% for h in header %}
+        <th>{{ h }}</th>
+        {% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in data %}
+      <tr>
+        {% for v in row %}
+        <td>{{ v }}</td>
+        {% endfor %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</body>
+</html>

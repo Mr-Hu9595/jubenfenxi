@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>剧本评估上传</title>
+  <style>
+    body { font-family: -apple-system, Arial, sans-serif; margin: 24px; }
+    .card { border: 1px solid #ddd; padding: 16px; border-radius: 8px; max-width: 820px; }
+    .row { margin: 8px 0; }
+    label { display: inline-block; width: 140px; }
+    input[type=text] { width: 600px; padding: 6px; }
+    button { padding: 8px 16px; }
+    .links { margin-top: 16px; }
+  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+</head>
+<body>
+  <h2>剧本评估表生成（上传文件即可）</h2>
+  <div class="card">
+    <form method="post" action="/upload" enctype="multipart/form-data">
+      <div class="row">
+        <label>目标 Excel 路径</label>
+        <input type="text" name="excel_path" value="{{ excel_path }}" />
+      </div>
+      <div class="row">
+        <label>目标工作表名</label>
+        <input type="text" name="sheet_name" value="{{ sheet_name }}" />
+      </div>
+      <div class="row">
+        <label>上传文件</label>
+        <input type="file" name="files" multiple accept=".txt,.docx,.pdf" />
+      </div>
+      <div class="row">
+        <button type="submit">生成评估表</button>
+      </div>
+    </form>
+
+    <div class="links">
+      <a href="/preview?excel={{ excel_path }}&sheet={{ sheet_name }}" target="_blank">预览当前工作表</a>
+      &nbsp;|&nbsp;
+      <a href="/download?excel={{ excel_path }}" target="_blank">另存为（下载 Excel）</a>
+    </div>
+    <p style="color:#666; margin-top: 12px;">支持格式：PDF / txt / word（docx）。PDF 若无法解析，将提示提供可解析文本版本。</p>
+  </div>
+</body>
+</html>

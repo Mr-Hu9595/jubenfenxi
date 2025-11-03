@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.pyc
+
+# macOS
+.DS_Store
+
+# Build outputs
+build/
+dist/
+*.spec
+
+# Environments & logs
+.env
+*.log
+
+# IDE & editor
+.vscode/
+.idea/
+
+# Vercel
+.vercel/
+
+# Cache
+.cache/
