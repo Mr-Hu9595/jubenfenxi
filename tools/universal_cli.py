@@ -165,10 +165,12 @@ def apply_formulas(ws, start_row: int, end_row: int):
         ws[f"AI{r}"] = f'=Q{r}+R{r}+S{r}+T{r}'
         # 台词质量总分（AL）：AJ+U+V+W+X
         ws[f"AL{r}"] = f'=AJ{r}+U{r}+V{r}+W{r}+X{r}'
-        # 人物关系（AS）：L+M
-        ws[f"AS{r}"] = f'=L{r}+M{r}'
-        # 主题深度（AW）：N+O+P
-        ws[f"AW{r}"] = f'=N{r}+O{r}+P{r}'
+        # 制作总分（AS）：场景数量与演员结构，封顶 15 分
+        ws[f"AS{r}"] = f'=MIN(15,L{r}+M{r})'
+        # 宣发总分（AW）：受众定位/上线时间/营销方向，封顶 10 分
+        ws[f"AW{r}"] = f'=MIN(10,AT{r}+AU{r}+AV{r})'
+        # 人物饱满度标签（AR）：按 AQ 分数映射 高/中/低
+        ws[f"AR{r}"] = f'=IF(AQ{r}>=67,"高",IF(AQ{r}>=34,"中","低"))'
         # 人物饱满度（AQ）：按 AM/AN/AO/AP 权重 8/6/4/2，总计 20 分
         ws[f"AQ{r}"] = (
             f'=ROUND((MIN(AM{r},10)/10*8)+'
