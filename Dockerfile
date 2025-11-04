@@ -14,7 +14,7 @@ WORKDIR /app
 
 # 仅复制依赖文件以利用 Docker 层缓存
 COPY requirements.txt /app/requirements.txt
-RUN pip install --no-cache-dir --default-timeout=${PIP_TIMEOUT} -i ${PIP_INDEX_URL} -r /app/requirements.txt
+RUN pip install --no-cache-dir --default-timeout=${PIP_TIMEOUT} -i ${PIP_INDEX_URL} --extra-index-url https://pypi.org/simple -r /app/requirements.txt
 
 # 复制应用源码
 COPY . /app
