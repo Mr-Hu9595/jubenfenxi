@@ -1,0 +1,31 @@
+version: "3.9"
+
+services:
+  app:
+    build: .
+    container_name: se-web
+    environment:
+      - FLASK_ENV=production
+      - PORT=5000
+      - EXCEL_PATH=/data/剧本评估表.xlsx
+      - UPLOAD_DIR=/data/uploads
+    volumes:
+      - data:/data
+    expose:
+      - "5000"
+    command: sh -c "gunicorn --workers 3 --threads 2 --timeout 120 --bind 0.0.0.0:${PORT} tools.web_app:app"
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:alpine
+    container_name: se-nginx
+    depends_on:
+      - app
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+    restart: unless-stopped
+
+volumes:
+  data:

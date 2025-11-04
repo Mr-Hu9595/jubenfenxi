@@ -4,6 +4,7 @@
 import os
 import sys
 import time
+import shutil
 from typing import List
 
 from flask import Flask, request, render_template, redirect, url_for, send_file
@@ -12,9 +13,9 @@ from openpyxl import load_workbook
 
 
 BASE_DIR = os.getcwd()
-DEFAULT_EXCEL = os.path.join(BASE_DIR, '剧本评估表.xlsx')
-DEFAULT_SHEET = '通用导入'
-UPLOAD_DIR = os.path.join(BASE_DIR, 'uploads')
+DEFAULT_EXCEL = os.environ.get('EXCEL_PATH') or os.path.join(BASE_DIR, '剧本评估表.xlsx')
+DEFAULT_SHEET = os.environ.get('SHEET_NAME') or '通用导入'
+UPLOAD_DIR = os.environ.get('UPLOAD_DIR') or os.path.join(BASE_DIR, 'uploads')
 ALLOWED_EXT = {'.txt', '.docx', '.pdf'}
 
 # 允许直接导入 tools 目录下的脚本
@@ -32,6 +33,17 @@ def resource_path(*parts):
     if base:
         return os.path.join(base, *parts)
     return os.path.join(BASE_DIR, *parts)
+
+def ensure_excel_file(excel_path: str):
+    """如果指定 Excel 文件不存在，尝试从资源目录复制一份模板。"""
+    try:
+        if not os.path.exists(excel_path):
+            src = resource_path('剧本评估表.xlsx')
+            if os.path.exists(src):
+                os.makedirs(os.path.dirname(excel_path), exist_ok=True)
+                shutil.copyfile(src, excel_path)
+    except Exception as e:
+        print(f"[警告] 默认 Excel 初始化失败: {e}")
 
 
 # 指定模板目录，兼容打包后的目录结构
@@ -96,6 +108,7 @@ def process_files(files: List[str], excel_path: str, sheet_name: str) -> int:
 def index():
     excel_path = request.args.get('excel', DEFAULT_EXCEL)
     sheet_name = request.args.get('sheet', DEFAULT_SHEET)
+    ensure_excel_file(excel_path)
     return render_template('index.html', excel_path=excel_path, sheet_name=sheet_name)
 
 
@@ -104,6 +117,7 @@ def upload():
     excel_path = request.form.get('excel_path', DEFAULT_EXCEL)
     sheet_name = request.form.get('sheet_name', DEFAULT_SHEET)
     ensure_upload_dir()
+    ensure_excel_file(excel_path)
 
     saved_paths = []
     files = request.files.getlist('files')
@@ -149,6 +163,7 @@ def preview():
     excel_path = request.args.get('excel', DEFAULT_EXCEL)
     sheet_name = request.args.get('sheet', DEFAULT_SHEET)
     added = int(request.args.get('added', '0'))
+    ensure_excel_file(excel_path)
     header, data = sheet_to_rows(excel_path, sheet_name)
     return render_template('preview.html', excel_path=excel_path, sheet_name=sheet_name, added=added, header=header, data=data)
 
@@ -156,6 +171,7 @@ def preview():
 @app.route('/download', methods=['GET'])
 def download():
     excel_path = request.args.get('excel', DEFAULT_EXCEL)
+    ensure_excel_file(excel_path)
     fname = os.path.basename(excel_path)
     return send_file(excel_path, as_attachment=True, download_name=fname)
 
