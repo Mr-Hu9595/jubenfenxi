@@ -248,9 +248,10 @@ def main():
 
         cur_row += 1
 
-    # 补齐公式联动
-    end_row = cur_row - 1
-    apply_formulas(ws, start_row, end_row)
+    # 补齐公式联动：为稳健起见，统一对整张工作表(自第2行至当前最大行)回填一次，
+    # 可避免已有数据在外部编辑后出现公式缺失的情况。
+    end_row = ws.max_row
+    apply_formulas(ws, 2, end_row)
     wb.save(args.excel)
 
     print(f"[完成] 已写入 {end_row - start_row + 1} 行到工作表：{args.sheet}")
