@@ -37,17 +37,54 @@ err(){ echo -e "\033[31m[ERR ]\033[0m $*"; }
 server_ip(){ curl -fsSL http://ipinfo.io/ip || curl -fsSL https://api.ip.sb/ip || hostname -I | awk '{print $1}'; }
 resolve_ip(){ getent ahostsv4 "$1" | awk 'NR==1{print $1}'; }
 
-log "更新系统并安装依赖..."
-$SUDO apt-get update -y
-$SUDO apt-get install -y git curl ca-certificates lsb-release software-properties-common certbot
+log "检测系统并安装依赖..."
+# 选择包管理器：apt/dnf/yum/apk
+PKG=""
+if command -v apt-get >/dev/null 2>&1; then
+  PKG="apt"
+elif command -v dnf >/dev/null 2>&1; then
+  PKG="dnf"
+elif command -v yum >/dev/null 2>&1; then
+  PKG="yum"
+elif command -v apk >/dev/null 2>&1; then
+  PKG="apk"
+else
+  err "未找到常见包管理器（apt/dnf/yum/apk）。请手动安装 git/curl/certbot 后重试。"
+  exit 1
+fi
+
+case "$PKG" in
+  apt)
+    $SUDO apt-get update -y
+    $SUDO apt-get install -y git curl ca-certificates lsb-release software-properties-common certbot
+    ;;
+  dnf)
+    $SUDO dnf -y install git curl ca-certificates
+    # certbot 在部分发行版为 python3-certbot
+    ($SUDO dnf -y install certbot || $SUDO dnf -y install python3-certbot) || true
+    ;;
+  yum)
+    $SUDO yum -y install git curl ca-certificates
+    # CentOS7 常见：先安装 epel，再装 certbot
+    ($SUDO yum -y install epel-release && $SUDO yum -y install certbot) || true
+    ;;
+  apk)
+    $SUDO apk update
+    $SUDO apk add --no-cache git curl ca-certificates openssl
+    # Alpine 的 certbot 可能为 py3-certbot
+    ($SUDO apk add --no-cache certbot || $SUDO apk add --no-cache py3-certbot) || true
+    ;;
+esac
 
 if ! command -v docker >/dev/null 2>&1; then
   log "安装 Docker..."
   curl -fsSL https://get.docker.com | $SUDO sh
 fi
 
-log "安装 Docker Compose 插件..."
-$SUDO apt-get install -y docker-compose-plugin || true
+if [[ "$PKG" == "apt" ]]; then
+  log "安装 Docker Compose 插件..."
+  $SUDO apt-get install -y docker-compose-plugin || true
+fi
 
 # 降低OOM风险：创建2G交换区（若不存在）
 if ! $SUDO swapon --show | grep -q .; then
@@ -94,7 +131,15 @@ if [[ "$ENABLE_HTTPS" == true ]]; then
   # 确保80端口空闲
   docker compose down || true
   $SUDO systemctl stop nginx || true
-  $SUDO certbot certonly --standalone -n --agree-tos -m "$EMAIL" -d "$DOMAIN"
+  # 同时覆盖根域与www子域
+  ALT_NAMES=()
+  if [[ "$DOMAIN" == www.* ]]; then
+    BASE_DOMAIN=${DOMAIN#www.}
+    ALT_NAMES=("-d" "$DOMAIN" "-d" "$BASE_DOMAIN")
+  else
+    ALT_NAMES=("-d" "$DOMAIN" "-d" "www.$DOMAIN")
+  fi
+  $SUDO certbot certonly --standalone -n --agree-tos -m "$EMAIL" "${ALT_NAMES[@]}"
 
   log "拷贝证书到Nginx挂载目录..."
   $SUDO cp -f "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" nginx/certs/fullchain.pem

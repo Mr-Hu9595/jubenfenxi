@@ -165,6 +165,8 @@ def apply_formulas(ws, start_row: int, end_row: int):
         ws[f"AI{r}"] = f'=Q{r}+R{r}+S{r}+T{r}'
         # 台词质量总分（AL）：AJ+U+V+W+X
         ws[f"AL{r}"] = f'=AJ{r}+U{r}+V{r}+W{r}+X{r}'
+        # 信息密度副本（AK）：与 U 列保持一致，供台词计算与视图使用
+        ws[f"AK{r}"] = f'=U{r}'
         # 制作总分（AS）：场景数量与演员结构，封顶 15 分
         ws[f"AS{r}"] = f'=MIN(15,L{r}+M{r})'
         # 宣发总分（AW）：受众定位/上线时间/营销方向，封顶 10 分

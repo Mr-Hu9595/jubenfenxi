@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>星河无限 · Nebula</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg: radial-gradient(1200px 600px at 10% 10%, #0b1b3a 0%, #0b1b3a 25%, #0e2a5c 60%, #090f1f 100%);
+      --accent: #7cc7ff; /* 星河蓝 */
+      --accent2: #a78bfa; /* 星紫 */
+      --text: #e6f3ff;
+    }
+    html, body { height: 100%; }
+    body { margin: 0; font-family: -apple-system, Arial, sans-serif; color: var(--text);
+      background: var(--bg);
+      background-attachment: fixed;
+    }
+    .stars::before, .stars::after {
+      content: ""; position: fixed; inset: 0; pointer-events: none;
+      background-image: radial-gradient(#ffffff55 1px, transparent 1px);
+      background-size: 3px 3px; opacity: .12; mix-blend-mode: screen;
+    }
+    .container { max-width: 960px; margin: 0 auto; padding: 32px 24px; }
+    header { display:flex; align-items:center; justify-content:space-between; }
+    .brand { display:flex; align-items:center; gap:12px; }
+    .logo { width: 36px; height: 36px; border-radius: 50%;
+      background: conic-gradient(from 120deg, var(--accent), var(--accent2), #64f0ff, var(--accent));
+      box-shadow: 0 0 24px #64f0ff33; }
+    .title { font-size: 22px; font-weight: 700; letter-spacing: 1px; }
+    .hero { margin: 40px 0 24px; }
+    .hero h1 { font-size: 36px; margin: 0 0 12px; }
+    .hero p { font-size: 16px; color:#d4e7ff; }
+    .cta { display:flex; flex-wrap:wrap; gap:12px; margin-top: 20px; }
+    .btn { display:inline-block; padding:10px 16px; border-radius:10px; text-decoration:none;
+      color:#06223f; background: linear-gradient(90deg, var(--accent), #64f0ff);
+      font-weight:600; box-shadow: 0 6px 20px #64f0ff33; }
+    .btn.alt { background: linear-gradient(90deg, var(--accent2), #7cc7ff); color:#0c1430; }
+    .card { border: 1px solid #1e3566; background:#0c1a38aa; border-radius:12px; padding:16px; }
+    h2 { font-size:20px; margin: 0 0 12px; }
+    code, pre { background:#0b1733; color:#bde3ff; padding:8px; border-radius:8px; display:block; overflow:auto; }
+    .grid { display:grid; grid-template-columns: 1fr; gap:14px; }
+    @media (min-width: 860px) { .grid { grid-template-columns: 1.1fr .9fr; } }
+    footer { margin-top: 32px; font-size: 12px; color:#99b7d9; }
+  </style>
+</head>
+<body class="stars">
+  <div class="container">
+    <header>
+      <div class="brand">
+        <div class="logo"></div>
+        <div class="title">星河无限 · Nebula</div>
+      </div>
+      <nav>
+        <a class="btn alt" href="/" title="上传评估">上传评估</a>
+      </nav>
+    </header>
+
+    <section class="hero">
+      <h1>以星河为名，让评估更有尺度与温度</h1>
+      <p>
+        一站式剧本评估与可视化工具（国内优化版）。支持 txt/docx/pdf 解析，自动填充 Excel 表，强化人物饱满度与结构评分，
+        兼顾制作估算与宣发建议。域名：<strong>nebula.org.cn</strong>
+      </p>
+      <div class="cta">
+        <a class="btn" href="/app?excel={{ excel_path }}&sheet={{ sheet_name }}">开始使用</a>
+        <a class="btn alt" href="#deploy">部署指南</a>
+      </div>
+    </section>
+
+    <div class="grid" id="deploy">
+      <div class="card">
+        <h2>部署（阿里云国内镜像，一键脚本）</h2>
+        <p>确保域名已解析到服务器IP（60.205.161.135），安全组放行 80/443。</p>
+        <pre><code>curl -fsSL https://raw.githubusercontent.com/Mr-Hu9595/jubenfenxi/main/scripts/setup_cn_mirror.sh \
+| bash -s -- -d nebula.org.cn -e admin@nebula.org.cn</code></pre>
+        <p>脚本功能：安装 Docker/Compose 与 certbot，创建交换区；克隆仓库并启动；若域名已生效自动申请证书、启用 HTTPS。</p>
+        <p>验证：</p>
+        <pre><code>curl -I https://nebula.org.cn/
+docker compose logs -f
+docker compose restart</code></pre>
+      </div>
+
+      <div class="card">
+        <h2>智能分流（可选）</h2>
+        <p>在“云解析DNS”配置：</p>
+        <ul>
+          <li>A 记录：<code>www.nebula.org.cn → 60.205.161.135</code></li>
+          <li>或：<code>cn.nebula.org.cn → 60.205.161.135</code>（大陆线路），<code>www → Render 域名</code>（默认/境外）</li>
+        </ul>
+        <p>备案：指向大陆 IP 时需完成 ICP 备案，推荐在备案完成后正式启用域名访问。</p>
+      </div>
+    </div>
+
+    <div class="grid" style="margin-top:14px;">
+      <div class="card">
+        <h2>产品说明</h2>
+        <ul>
+          <li>评分体系覆盖：内容/人物饱满度/制作/宣发/商业价值。</li>
+          <li>PDF 无法解析时，界面会提示提供 txt/docx 版本。</li>
+          <li>生成的 Excel 可在“预览/下载”查看与导出。</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h2>快速入口</h2>
+        <p><a class="btn" href="/preview?excel={{ excel_path }}&sheet={{ sheet_name }}" target="_blank">预览当前工作表</a></p>
+        <p><a class="btn alt" href="/download?excel={{ excel_path }}" target="_blank">下载 Excel</a></p>
+      </div>
+    </div>
+
+    <footer>
+      © 星河无限 · Nebula — 剧本评估与可视化 | 由 Flask + Nginx + Docker 驱动
+    </footer>
+  </div>
+  
+</body>
+</html>

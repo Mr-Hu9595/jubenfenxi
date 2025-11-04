@@ -106,6 +106,25 @@ def process_files(files: List[str], excel_path: str, sheet_name: str) -> int:
 
 @app.route('/', methods=['GET'])
 def index():
+    # 默认首页切换为品牌页“星河无限”
+    excel_path = request.args.get('excel', DEFAULT_EXCEL)
+    sheet_name = request.args.get('sheet', DEFAULT_SHEET)
+    ensure_excel_file(excel_path)
+    return render_template('nebula.html', excel_path=excel_path, sheet_name=sheet_name)
+
+
+@app.route('/nebula', methods=['GET'])
+def nebula_home():
+    """品牌首页：星河无限。提供引导与跳转。"""
+    excel_path = request.args.get('excel', DEFAULT_EXCEL)
+    sheet_name = request.args.get('sheet', DEFAULT_SHEET)
+    ensure_excel_file(excel_path)
+    return render_template('nebula.html', excel_path=excel_path, sheet_name=sheet_name)
+
+
+@app.route('/app', methods=['GET'])
+def app_upload_form():
+    """上传入口（原首页上传页）。"""
     excel_path = request.args.get('excel', DEFAULT_EXCEL)
     sheet_name = request.args.get('sheet', DEFAULT_SHEET)
     ensure_excel_file(excel_path)

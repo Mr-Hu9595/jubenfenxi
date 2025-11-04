@@ -1,13 +1,10 @@
-# 复制证书文件到容器挂载目录后启用本配置：
-# docker compose down && docker compose up -d
-
 upstream se_app {
     server app:5000;
 }
 
 server {
-    listen 443 ssl http2;
-    server_name example.com;
+    listen 443 ssl;
+    server_name example.com www.example.com;
 
     ssl_certificate     /etc/nginx/certs/fullchain.pem;
     ssl_certificate_key /etc/nginx/certs/privkey.pem;
@@ -27,10 +24,4 @@ server {
         proxy_set_header Connection "";
         proxy_pass http://se_app;
     }
-}
-
-server {
-    listen 80;
-    server_name example.com;
-    return 301 https://$host$request_uri;
 }
