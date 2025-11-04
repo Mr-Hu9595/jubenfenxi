@@ -22,7 +22,9 @@ DEFAULT_EXCEL = os.environ.get('EXCEL_PATH') or os.path.join(BASE_DIR, '剧本�
 DEFAULT_SHEET = os.environ.get('SHEET_NAME') or '工作表1'
 UPLOAD_DIR = os.environ.get('UPLOAD_DIR') or os.path.join(BASE_DIR, 'uploads')
 ALLOWED_EXT = {'.txt', '.docx', '.pdf'}
-DB_PATH = os.path.join(BASE_DIR, 'nebula.db')
+# 将数据库持久化到挂载的数据目录，避免容器内 /app 写入权限或镜像更新导致的不可用
+# 结构：/data/system/nebula.db
+DB_PATH = os.path.join(DATA_DIR, 'system', 'nebula.db')
 DATA_DIR = os.environ.get('DATA_DIR') or BASE_DIR
 MAX_FILES = int(os.environ.get('MAX_FILES', '100'))
 
@@ -66,6 +68,11 @@ app.config['SESSION_COOKIE_SECURE'] = False  # 如启用 HTTPS 可改为 True
 # -------------------- 账号与操作留存（SQLite） --------------------
 
 def init_db():
+    # 确保数据库所在目录存在
+    try:
+        os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
+    except Exception as e:
+        print(f"[警告] 创建数据库目录失败: {e}")
     try:
         conn = sqlite3.connect(DB_PATH)
         cur = conn.cursor()
