@@ -196,19 +196,37 @@ def apply_formulas(ws, start_row: int, end_row: int):
 
 def main():
     parser = argparse.ArgumentParser(description="剧本评估通用导入 CLI")
-    parser.add_argument("--input", required=True, help="输入路径（文件或目录），支持 .txt/.docx/.pdf")
+    parser.add_argument(
+        "--input",
+        default=".",
+        help="输入路径（文件或目录），支持 .txt/.docx/.pdf；默认当前工作目录",
+    )
     parser.add_argument(
         "--excel",
         default="/Users/mr.hu/Desktop/爆款排名/剧本评估表.xlsx",
         help="目标 Excel 文件路径",
     )
-    parser.add_argument("--sheet", default="通用导入", help="目标工作表名，不存在则自动创建")
+    parser.add_argument(
+        "--sheet",
+        default="工作表1",
+        help="目标工作表名，不存在则自动创建（默认：工作表1）",
+    )
+    parser.add_argument(
+        "--max",
+        type=int,
+        default=100,
+        help="单次最多处理的文件数（默认100）",
+    )
     args = parser.parse_args()
 
     files = collect_files(args.input)
     if not files:
         print("[提示] 未发现可处理的文件（支持 .txt/.docx/.pdf）。")
         sys.exit(0)
+
+    if len(files) > args.max:
+        print(f"[提示] 本次仅处理前 {args.max} 个文件，其余 {len(files) - args.max} 个请分批处理或调整 --max。")
+        files = files[:args.max]
 
     print(f"[信息] 即将处理 {len(files)} 个文件，写入工作表：{args.sheet}")
 
