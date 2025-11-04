@@ -1,0 +1,24 @@
+FROM python:3.10-slim
+
+# 环境设置：更快、更稳定的 Python 运行
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PORT=5000
+
+WORKDIR /app
+
+# 仅复制依赖文件以利用 Docker 层缓存
+COPY requirements.txt /app/requirements.txt
+RUN pip install --no-cache-dir -r /app/requirements.txt
+
+# 复制应用源码
+COPY . /app
+
+# 可选：预创建临时目录（上传/生成文件使用）
+RUN mkdir -p /app/tmp
+
+# 暴露默认端口（实际运行由平台传入 $PORT）
+EXPOSE 5000
+
+# 使用 gunicorn 启动 Flask 应用，兼容云平台注入的 $PORT
+CMD ["sh", "-c", "gunicorn --workers 3 --timeout 120 --bind 0.0.0.0:${PORT:-5000} tools.web_app:app"]

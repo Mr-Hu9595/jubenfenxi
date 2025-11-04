@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: script-evaluator-web
+    env: docker
+    autoDeploy: true
+    plan: free
+    regions:
+      - oregon
+    healthCheckPath: /
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: PORT
+        value: 5000
