@@ -16,11 +16,24 @@
 </head>
 <body>
   <h2>剧本评估表生成（上传文件即可）</h2>
+  <div class="row" style="margin-bottom:12px;">
+    {% if user %}
+      <span>已登录：{{ user.username }}</span>
+      &nbsp;|&nbsp;
+      <a href="/logout">退出登录</a>
+    {% else %}
+      <a href="/login">登录</a>
+      &nbsp;|&nbsp;
+      <a href="/register">注册</a>
+    {% endif %}
+    &nbsp;|&nbsp;
+    <a href="/">返回首页</a>
+  </div>
   <div class="card">
     <form method="post" action="/upload" enctype="multipart/form-data">
       <div class="row">
-        <label>目标 Excel 路径</label>
-        <input type="text" name="excel_path" value="{{ excel_path }}" />
+        <label>当前账号 Excel</label>
+        <input type="text" value="{{ excel_path }}" readonly />
       </div>
       <div class="row">
         <label>目标工作表名</label>
@@ -36,9 +49,9 @@
     </form>
 
     <div class="links">
-      <a href="/preview?excel={{ excel_path }}&sheet={{ sheet_name }}" target="_blank">预览当前工作表</a>
+      <a href="/preview?sheet={{ sheet_name }}" target="_blank">预览当前工作表</a>
       &nbsp;|&nbsp;
-      <a href="/download?excel={{ excel_path }}" target="_blank">另存为（下载 Excel）</a>
+      <a href="/download" target="_blank">另存为（下载 Excel）</a>
     </div>
     <p style="color:#666; margin-top: 12px;">支持格式：PDF / txt / word（docx）。PDF 若无法解析，将提示提供可解析文本版本。</p>
   </div>

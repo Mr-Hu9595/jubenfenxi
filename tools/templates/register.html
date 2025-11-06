@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>注册 · 星河无限</title>
+  <style>
+    body { font-family: -apple-system, Arial, sans-serif; margin: 24px; }
+    .card { border: 1px solid #ddd; padding: 16px; border-radius: 8px; max-width: 520px; }
+    .row { margin: 8px 0; }
+    label { display: inline-block; width: 100px; }
+    input[type=text], input[type=password], input[type=email] { width: 360px; padding: 6px; }
+    button { padding: 8px 16px; }
+    .error { color: #d64545; margin-bottom: 8px; }
+    .nav { margin-bottom: 12px; }
+    .nav a { margin-right: 12px; }
+  </style>
+</head>
+<body>
+  <div class="nav">
+    <a href="/">返回首页</a>
+    <a href="/login">已有账号？去登录</a>
+  </div>
+  <h2>注册账号</h2>
+  <div class="card">
+    {% if error %}
+      <div class="error">{{ error }}</div>
+    {% endif %}
+    <form method="post" action="/register">
+      <div class="row">
+        <label>用户名</label>
+        <input type="text" name="username" required />
+      </div>
+      <div class="row">
+        <label>密码</label>
+        <input type="password" name="password" required />
+      </div>
+      <div class="row">
+        <label>邮箱</label>
+        <input type="email" name="email" placeholder="可选" />
+      </div>
+      <div class="row">
+        <button type="submit">注册</button>
+      </div>
+    </form>
+  </div>
+</body>
+</html>

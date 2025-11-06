@@ -52,7 +52,16 @@
         <div class="title">星河无限 · Nebula</div>
       </div>
       <nav>
-        <a class="btn alt" href="/" title="上传评估">上传评估</a>
+        {% if user %}
+          <span style="margin-right:12px; color:#bde3ff;">已登录：{{ user.username }}</span>
+          <a class="btn alt" href="/app" title="上传评估">上传评估</a>
+          &nbsp;
+          <a class="btn" href="/logout" title="退出">退出登录</a>
+        {% else %}
+          <a class="btn alt" href="/login" title="登录">登录</a>
+          &nbsp;
+          <a class="btn" href="/register" title="注册">注册</a>
+        {% endif %}
       </nav>
     </header>
 
@@ -63,34 +72,12 @@
         兼顾制作估算与宣发建议。域名：<strong>nebula.org.cn</strong>
       </p>
       <div class="cta">
-        <a class="btn" href="/app?excel={{ excel_path }}&sheet={{ sheet_name }}">开始使用</a>
-        <a class="btn alt" href="#deploy">部署指南</a>
+        <a class="btn" href="/analysis?sheet={{ sheet_name }}">剧本分析</a>
+        <a class="btn alt" href="/preview?sheet={{ sheet_name }}" target="_blank">预览评估表</a>
       </div>
     </section>
 
-    <div class="grid" id="deploy">
-      <div class="card">
-        <h2>部署（阿里云国内镜像，一键脚本）</h2>
-        <p>确保域名已解析到服务器IP（60.205.161.135），安全组放行 80/443。</p>
-        <pre><code>curl -fsSL https://raw.githubusercontent.com/Mr-Hu9595/jubenfenxi/main/scripts/setup_cn_mirror.sh \
-| bash -s -- -d nebula.org.cn -e admin@nebula.org.cn</code></pre>
-        <p>脚本功能：安装 Docker/Compose 与 certbot，创建交换区；克隆仓库并启动；若域名已生效自动申请证书、启用 HTTPS。</p>
-        <p>验证：</p>
-        <pre><code>curl -I https://nebula.org.cn/
-docker compose logs -f
-docker compose restart</code></pre>
-      </div>
-
-      <div class="card">
-        <h2>智能分流（可选）</h2>
-        <p>在“云解析DNS”配置：</p>
-        <ul>
-          <li>A 记录：<code>www.nebula.org.cn → 60.205.161.135</code></li>
-          <li>或：<code>cn.nebula.org.cn → 60.205.161.135</code>（大陆线路），<code>www → Render 域名</code>（默认/境外）</li>
-        </ul>
-        <p>备案：指向大陆 IP 时需完成 ICP 备案，推荐在备案完成后正式启用域名访问。</p>
-      </div>
-    </div>
+    <!-- 移除部署与智能分流板块，主页聚焦“剧本分析”入口与常用操作 -->
 
     <div class="grid" style="margin-top:14px;">
       <div class="card">
@@ -103,8 +90,8 @@ docker compose restart</code></pre>
       </div>
       <div class="card">
         <h2>快速入口</h2>
-        <p><a class="btn" href="/preview?excel={{ excel_path }}&sheet={{ sheet_name }}" target="_blank">预览当前工作表</a></p>
-        <p><a class="btn alt" href="/download?excel={{ excel_path }}" target="_blank">下载 Excel</a></p>
+        <p><a class="btn" href="/analysis?sheet={{ sheet_name }}">进入剧本分析</a></p>
+        <p><a class="btn alt" href="/download" target="_blank">下载当前 Excel</a></p>
       </div>
     </div>
 

@@ -22,10 +22,10 @@ DEFAULT_EXCEL = os.environ.get('EXCEL_PATH') or os.path.join(BASE_DIR, '剧本�
 DEFAULT_SHEET = os.environ.get('SHEET_NAME') or '工作表1'
 UPLOAD_DIR = os.environ.get('UPLOAD_DIR') or os.path.join(BASE_DIR, 'uploads')
 ALLOWED_EXT = {'.txt', '.docx', '.pdf'}
+DATA_DIR = os.environ.get('DATA_DIR') or BASE_DIR
 # 将数据库持久化到挂载的数据目录，避免容器内 /app 写入权限或镜像更新导致的不可用
 # 结构：/data/system/nebula.db
 DB_PATH = os.path.join(DATA_DIR, 'system', 'nebula.db')
-DATA_DIR = os.environ.get('DATA_DIR') or BASE_DIR
 MAX_FILES = int(os.environ.get('MAX_FILES', '100'))
 
 # 允许直接导入 tools 目录下的脚本
@@ -293,37 +293,54 @@ def app_upload_form():
     excel_path = session.get('excel_path') or session_excel_path()
     sheet_name = request.args.get('sheet', DEFAULT_SHEET)
     ensure_excel_file(excel_path)
-    return render_template('index.html', excel_path=excel_path, sheet_name=sheet_name, user=current_user())
+    return render_template('analysis.html', excel_path=excel_path, sheet_name=sheet_name, user=current_user(), max_files=MAX_FILES)
+
+
+@app.route('/analysis', methods=['GET'])
+@login_required
+def analysis_page():
+    """剧本分析独立页面。"""
+    excel_path = session.get('excel_path') or session_excel_path()
+    sheet_name = request.args.get('sheet', DEFAULT_SHEET)
+    ensure_excel_file(excel_path)
+    return render_template('analysis.html', excel_path=excel_path, sheet_name=sheet_name, user=current_user(), max_files=MAX_FILES)
 
 
 @app.route('/upload', methods=['POST'])
 @login_required
 def upload():
-    # 强制使用当前会话的独立 Excel，避免跨用户干扰
-    excel_path = session.get('excel_path') or session_excel_path()
-    sheet_name = request.form.get('sheet_name', DEFAULT_SHEET)
-    # 使用会话独立上传目录
-    user_upload_dir = ensure_user_upload_dir()
-    ensure_excel_file(excel_path)
+    try:
+        # 强制使用当前会话的独立 Excel，避免跨用户干扰
+        excel_path = session.get('excel_path') or session_excel_path()
+        sheet_name = request.form.get('sheet_name', DEFAULT_SHEET)
+        # 使用会话独立上传目录
+        user_upload_dir = ensure_user_upload_dir()
+        ensure_excel_file(excel_path)
 
-    saved_paths = []
-    files = request.files.getlist('files')
-    for f in files:
-        filename = secure_filename(f.filename)
-        if not filename or not allowed_file(filename):
-            continue
-        ts = int(time.time()*1000)
-        out_path = os.path.join(user_upload_dir, f"{ts}_{filename}")
-        f.save(out_path)
-        saved_paths.append(out_path)
+        saved_paths = []
+        files = request.files.getlist('files')
+        if not files:
+            return "未收到上传文件（请选择 .txt/.docx/.pdf 或文件夹）", 400
+        for f in files:
+            filename = secure_filename(f.filename)
+            if not filename or not allowed_file(filename):
+                continue
+            ts = int(time.time()*1000)
+            base = os.path.basename(filename)
+            out_path = os.path.join(user_upload_dir, f"{ts}_{base}")
+            f.save(out_path)
+            saved_paths.append(out_path)
 
-    if not saved_paths:
-        return "未选择有效文件（仅支持 .txt/.docx/.pdf）", 400
+        if not saved_paths:
+            return "未选择有效文件（仅支持 .txt/.docx/.pdf）", 400
 
-    count = process_files(saved_paths, excel_path, sheet_name)
-    log_action('upload', {'files': saved_paths, 'count': count, 'sheet': sheet_name})
-    # 预览与下载均读取当前会话的 Excel，不再依赖外部传入路径
-    return redirect(url_for('preview', sheet=sheet_name, added=count))
+        count = process_files(saved_paths, excel_path, sheet_name)
+        log_action('upload', {'files': saved_paths, 'count': count, 'sheet': sheet_name})
+        # 预览与下载均读取当前会话的 Excel，不再依赖外部传入路径
+        return redirect(url_for('preview', sheet=sheet_name, added=count))
+    except Exception as e:
+        print(f"[错误] 上传处理失败：{e}")
+        return f"处理失败：{e}", 500
 
 
 def sheet_to_rows(excel_path: str, sheet_name: str, max_rows: int = 50, max_cols: int = 30):

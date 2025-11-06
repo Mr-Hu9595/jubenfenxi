@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>剧本分析 · 星河无限</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg: radial-gradient(1200px 600px at 10% 10%, #0b1b3a 0%, #0b1b3a 25%, #0e2a5c 60%, #090f1f 100%);
+      --accent: #7cc7ff;
+      --accent2: #a78bfa;
+      --text: #e6f3ff;
+    }
+    html, body { height: 100%; }
+    body { margin: 0; font-family: -apple-system, Arial, sans-serif; color: var(--text); background: var(--bg); background-attachment: fixed; }
+    .container { max-width: 960px; margin: 0 auto; padding: 32px 24px; }
+    header { display:flex; align-items:center; justify-content:space-between; }
+    .brand { display:flex; align-items:center; gap:12px; }
+    .logo { width: 36px; height: 36px; border-radius: 50%; background: conic-gradient(from 120deg, var(--accent), var(--accent2), #64f0ff, var(--accent)); box-shadow: 0 0 24px #64f0ff33; }
+    .title { font-size: 22px; font-weight: 700; letter-spacing: 1px; }
+    .card { border: 1px solid #1e3566; background:#0c1a38aa; border-radius:12px; padding:16px; }
+    h2 { font-size:20px; margin: 0 0 12px; }
+    label { display:block; margin: 10px 0 6px; color:#bde3ff; }
+    input[type=text] { width: 100%; padding: 8px; border-radius:8px; border:1px solid #1e3566; background:#0b1733; color:#bde3ff; }
+    input[type=file] { color:#bde3ff; }
+    .grid { display:grid; grid-template-columns: 1fr; gap:14px; }
+    @media (min-width: 860px) { .grid { grid-template-columns: 1fr 1fr; } }
+    .btn { display:inline-block; padding:10px 16px; border-radius:10px; text-decoration:none; color:#06223f; background: linear-gradient(90deg, var(--accent), #64f0ff); font-weight:600; box-shadow: 0 6px 20px #64f0ff33; }
+    .btn.alt { background: linear-gradient(90deg, var(--accent2), #7cc7ff); color:#0c1430; }
+    .actions { display:flex; gap:12px; flex-wrap:wrap; margin-top: 16px; }
+    .note { color:#99b7d9; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="brand">
+        <div class="logo"></div>
+        <div class="title">星河无限 · 剧本分析</div>
+      </div>
+      <nav>
+        {% if user %}
+          <span style="margin-right:12px; color:#bde3ff;">已登录：{{ user.username }}</span>
+          <a class="btn alt" href="/logout">退出登录</a>
+        {% else %}
+          <a class="btn alt" href="/login">登录</a>
+          &nbsp;
+          <a class="btn" href="/register">注册</a>
+        {% endif %}
+      </nav>
+    </header>
+
+    <div class="grid">
+      <div class="card">
+        <h2>上传与生成评估表</h2>
+        <form method="post" action="/upload" enctype="multipart/form-data">
+          <label>当前账号 Excel（只读）</label>
+          <input type="text" value="{{ excel_path }}" readonly />
+
+          <label>目标工作表名</label>
+          <input type="text" name="sheet_name" value="{{ sheet_name }}" />
+
+          <label>选择文件（最多 100 个）</label>
+          <input type="file" name="files" multiple accept=".txt,.docx,.pdf" />
+
+          <label>或选择文件夹（自动识别其中的 txt/docx/pdf）</label>
+          <!-- 使用 webkitdirectory 以支持目录上传；浏览器将逐个文件提交到同名字段 -->
+          <input type="file" name="files" webkitdirectory directory />
+
+          <div class="actions">
+            <button type="submit" class="btn">生成评估表</button>
+            <a class="btn alt" href="/preview?sheet={{ sheet_name }}" target="_blank">预览工作表</a>
+            <a class="btn alt" href="/download" target="_blank">下载 Excel</a>
+          </div>
+          <p class="note">支持格式：PDF / txt / docx。若 PDF 无法解析，将提示提供可解析文本版本。</p>
+        </form>
+      </div>
+
+      <div class="card">
+        <h2>使用说明</h2>
+        <ul>
+          <li>一次上传最多 {{ 100 if not max_files else max_files }} 个文件，超出将自动截断。</li>
+          <li>文件夹上传会递归读取其中的支持格式文件。</li>
+          <li>评分体系对齐：内容 50、人物饱满度 20、制作 15、宣发 10、商业价值 5。</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
