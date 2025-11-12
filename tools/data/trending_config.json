@@ -1,0 +1,34 @@
+{
+  "last_updated": "2025-11-10",
+  "sources": [
+    {
+      "name": "知乎专栏：短剧热度与平台榜单片段",
+      "url": "https://zhuanlan.zhihu.com/p/1958660275692635110"
+    },
+    {
+      "name": "SegmentFault：2025微短剧行业生态数据",
+      "url": "https://segmentfault.com/a/1190000047064494"
+    },
+    {
+      "name": "CSDN专题：社交媒体营销融合趋势报告摘录",
+      "url": "https://blog.csdn.net/qq_19600291/article/details/151577674"
+    }
+  ],
+  "platforms": {
+    "douyin": {
+      "strong_tags": ["反转", "逆袭", "甜宠", "虐恋", "成长", "救赎"],
+      "moderate_tags": ["悬疑", "家国", "群像", "知识", "专业"],
+      "topic_words": ["爆点", "争议", "话题", "热搜"]
+    },
+    "hongguo": {
+      "strong_tags": ["甜虐", "成年人爱情", "反差", "家国叙事"],
+      "moderate_tags": ["现实题材", "家庭伦理", "群像"],
+      "topic_words": ["热度值", "榜单", "新剧榜", "热播榜"]
+    }
+  },
+  "weights": {
+    "strong": 1.0,
+    "moderate": 0.6,
+    "topic": 0.5
+  }
+}

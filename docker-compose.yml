@@ -1,8 +1,12 @@
-version: "3.9"
-
 services:
   app:
-    build: .
+    build:
+      context: .
+      args:
+        APT_MIRROR: ${APT_MIRROR:-mirrors.aliyun.com}
+        SECURITY_MIRROR: ${SECURITY_MIRROR:-mirrors.aliyun.com}
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://mirrors.aliyun.com/pypi/simple/}
+        PIP_TIMEOUT: ${PIP_TIMEOUT:-600}
     environment:
       - FLASK_ENV=production
       - PORT=5000

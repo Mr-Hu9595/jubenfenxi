@@ -28,6 +28,13 @@ docker --version && docker compose version || echo "注意：新版本 Compose �
 # 克隆仓库
 cd ~ && git clone <你的Git仓库URL> jubenfenxi && cd jubenfenxi
 
+# 可选：先使用国内镜像参数构建（更稳）
+docker compose build \
+  --build-arg APT_MIRROR=mirrors.aliyun.com \
+  --build-arg SECURITY_MIRROR=mirrors.aliyun.com \
+  --build-arg PIP_INDEX_URL=https://mirrors.aliyun.com/pypi/simple/ \
+  --build-arg PIP_TIMEOUT=600 app
+
 # 启动（包含 app + nginx）
 docker compose up -d
 
@@ -39,7 +46,17 @@ docker compose ps
 - 目录持久化：容器挂载了名为 `data` 的卷，应用将使用：
   - `EXCEL_PATH=/data/剧本评估表.xlsx`
   - `UPLOAD_DIR=/data/uploads`
-- 首次运行若 `/data/剧本评估表.xlsx` 不存在，应用会自动复制模板到该位置。
+- 首次运行若 `EXCEL_PATH` 不存在，应用会自动创建最小可用工作簿（不再复制内置模板）。
+
+> 提示：你也可以在仓库根目录创建 `.env` 持久化镜像参数：
+> 
+> ```
+> APT_MIRROR=mirrors.aliyun.com
+> SECURITY_MIRROR=mirrors.aliyun.com
+> PIP_INDEX_URL=https://mirrors.aliyun.com/pypi/simple/
+> PIP_TIMEOUT=600
+> PORT=5000
+> ```
 
 ---
 

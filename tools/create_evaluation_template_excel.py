@@ -2,7 +2,8 @@ import os
 import json
 from typing import List, Optional
 
-OUTPUT_PATH = "/Users/mr.hu/Desktop/爆款排名/剧本评估（横维竖剧）.xlsx"
+BASE_DIR = os.getcwd()
+OUTPUT_PATH = os.environ.get("OUTPUT_TEMPLATE", os.path.join(BASE_DIR, "剧本评估（横维竖剧）.xlsx"))
 
 HEADERS: List[str] = [
     "剧本名",
@@ -21,7 +22,7 @@ HEADERS: List[str] = [
     "营销方向",
 ]
 
-INPUT_JSON = "/Users/mr.hu/Desktop/爆款排名/analysis_results_11.3.json"
+INPUT_JSON = os.environ.get("INPUT_JSON", os.path.join(BASE_DIR, "analysis_results.json"))
 
 POSSIBLE_KEYS = [
     "剧本名",

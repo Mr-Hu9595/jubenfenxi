@@ -16,8 +16,11 @@ set -euo pipefail
 #   SECRET_KEY=<your-secret>
 
 BRANCH=${BRANCH:-main}
-PIP_INDEX_URL=${PIP_INDEX_URL:-https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple}
-PIP_TIMEOUT=${PIP_TIMEOUT:-180}
+# 构建镜像源参数（默认使用阿里云）
+APT_MIRROR=${APT_MIRROR:-mirrors.aliyun.com}
+SECURITY_MIRROR=${SECURITY_MIRROR:-mirrors.aliyun.com}
+PIP_INDEX_URL=${PIP_INDEX_URL:-https://mirrors.aliyun.com/pypi/simple/}
+PIP_TIMEOUT=${PIP_TIMEOUT:-600}
 PORT=${PORT:-5000}
 SECRET_KEY=${SECRET_KEY:-}
 REPO_DIR=${REPO_DIR:-/opt/nebula}
@@ -54,6 +57,12 @@ else
     warn "未发现 .git，跳过 git 拉取。请在 $REPO_DIR 初始化仓库并设置 origin 以启用自动拉取。"
   fi
   cd "$REPO_DIR"
+  # 若存在 .env，先加载以提供持久化默认值（调用时传入的环境变量仍可覆盖）
+  if [ -f .env ]; then
+    set -a
+    . ./.env
+    set +a
+  fi
 fi
 
 # 写入/更新 .env（PORT 与 SECRET_KEY）
@@ -70,9 +79,18 @@ if [ -n "$SECRET_KEY" ]; then
     $SUDO sed -i.bak -E "s/^SECRET_KEY=.*/SECRET_KEY=$SECRET_KEY/g" .env
   fi
 fi
+ # 持久化镜像参数（如传入，则写入 .env；若已有则不覆盖）
+ for kv in "APT_MIRROR=$APT_MIRROR" "SECURITY_MIRROR=$SECURITY_MIRROR" "PIP_INDEX_URL=$PIP_INDEX_URL" "PIP_TIMEOUT=$PIP_TIMEOUT"; do
+   key=${kv%%=*}; val=${kv#*=}
+   if ! grep -q "^${key}=" .env; then
+     echo "$key=$val" | $SUDO tee -a .env >/dev/null
+   fi
+ done
 
-log "重建 app（使用镜像源与延长超时）..."
+log "重建 app（使用 APT/PyPI 镜像与延长超时）..."
 $SUDO $DC build --progress=plain \
+  --build-arg APT_MIRROR="$APT_MIRROR" \
+  --build-arg SECURITY_MIRROR="$SECURITY_MIRROR" \
   --build-arg PIP_INDEX_URL="$PIP_INDEX_URL" \
   --build-arg PIP_TIMEOUT="$PIP_TIMEOUT" app
 
@@ -85,6 +103,9 @@ $SUDO $DC ps || true
 
 log "应用日志 (最近120行)..."
 $SUDO $DC logs -n 120 app || true
+
+log "Nginx 日志 (最近60行)..."
+$SUDO $DC logs -n 60 nginx || true
 
 # 轻量健康检查（本机）
 if command -v curl >/dev/null 2>&1; then

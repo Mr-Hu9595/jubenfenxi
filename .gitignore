@@ -18,8 +18,10 @@ dist/
 .vscode/
 .idea/
 
-# Vercel
-.vercel/
 
 # Cache
 .cache/
+
+# Runtime data (web uploads & per-user workbooks)
+uploads/
+user_data/

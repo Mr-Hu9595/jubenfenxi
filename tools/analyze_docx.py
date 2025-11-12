@@ -2,11 +2,13 @@
 # -*- coding: utf-8 -*-
 
 """
-递归解析 /Users/mr.hu/Desktop/爆款排名/11.3日剧本 下的 docx 文件，
-抽取关键信息并计算评分与综合排序；严格对齐参考样式生成 Excel：
-/Users/mr.hu/Desktop/爆款排名/11.3 项目评估.xlsx
+递归解析指定目录下的 docx 文件，抽取关键信息并计算评分与综合排序；
+同时可生成 Excel 与分析溯源 JSON（路径可通过环境变量覆盖）。
 
-同时写入分析溯源：/Users/mr.hu/Desktop/爆款排名/analysis_results_11.3.json
+环境变量：
+- DOCX_DIR：待解析的 docx 目录（默认 samples/）。
+- OUT_JSON：分析结果输出 JSON（默认工作目录 analysis_results.json）。
+- OUT_XLSX：结果 Excel 输出路径（默认工作目录 剧本评估表.xlsx）。
 
 字段与算法参考 tools/analyze_scripts.py，并增强题材类型识别与 docx 解析。
 """
@@ -16,9 +18,10 @@ import re
 import json
 from collections import Counter
 
-DOCX_DIR = "/Users/mr.hu/Desktop/爆款排名/11.3日剧本"
-OUT_JSON = "/Users/mr.hu/Desktop/爆款排名/analysis_results_11.3.json"
-OUT_XLSX = "/Users/mr.hu/Desktop/爆款排名/11.3 项目评估.xlsx"
+BASE_DIR = os.getcwd()
+DOCX_DIR = os.environ.get("DOCX_DIR", os.path.join(BASE_DIR, "samples"))
+OUT_JSON = os.environ.get("OUT_JSON", os.path.join(BASE_DIR, "analysis_results.json"))
+OUT_XLSX = os.environ.get("OUT_XLSX", os.path.join(BASE_DIR, "剧本评估表.xlsx"))
 
 
 def list_docx_files(root):
@@ -244,32 +247,23 @@ def overall_priority(potential, difficulty, budget_control, novelty, era):
 
 
 def character_depth_score(title, text):
-    """估算人物饱满度（0–100）
-    依据关键词与反差连接词的出现次数，衡量人物的多面性与成长/救赎弧光。
+    """估算人物饱满度（0–100，多面性指数）
+    统一复用 auto_score_from_text 的四组件计算，并按 40/30/20/10 加权。
     """
-    hi = ['反转', '黑化', '洗白', '救赎']
-    mid = ['成长', '矛盾', '挣扎', '两面', '复杂', '人性', '良心', '心软', '狠', '真实', '缺点', '优点']
-    connectors = ['但是', '然而', '却', '同时', '一方面', '另一方面', '看似', '实则', '表面', '内心']
-    pairs = [
-        ('善良', '狠'), ('温柔', '冷酷'), ('好人', '坏事'), ('坏人', '好事'), ('忠诚', '背叛'), ('自私', '牺牲')
-    ]
-    t = title + "\n" + text
-    hi_cnt = sum(t.count(k) for k in hi)
-    mid_cnt = sum(t.count(k) for k in mid)
-    conn_cnt = sum(t.count(k) for k in connectors)
-    pair_cnt = 0
-    for a, b in pairs:
-        if a in t and b in t:
-            pair_cnt += 1
-    raw = hi_cnt * 10 + mid_cnt * 6 + conn_cnt * 2 + pair_cnt * 10
-    # 语料长度适度归一，避免长文本天然得分高
-    length_factor = 1.0
-    if len(t) > 20000:
-        length_factor = 0.8
-    elif len(t) < 6000:
-        length_factor = 1.1
-    score = int(raw * length_factor)
-    return max(0, min(100, score))
+    try:
+        # 延迟导入以避免循环依赖
+        from auto_score_from_text import character_fullness_components
+        comp = character_fullness_components(title + "\n" + text)
+        score = (
+            (comp.get('人物饱满度｜关键词权重', 0) * 0.4)
+            + (comp.get('人物饱满度｜连接词权重', 0) * 0.3)
+            + (comp.get('人物饱满度｜反差词对', 0) * 0.2)
+            + (comp.get('人物饱满度｜事件层级与弧光', 0) * 0.1)
+        )
+        return round(max(0.0, min(100.0, score)), 2)
+    except Exception:
+        # 兜底：若导入失败，返回中位值以不中断流程
+        return 50.0
 
 
 def character_depth_label(score):

@@ -9,6 +9,11 @@ DOMAIN=""
 EMAIL=""
 REPO_URL="https://github.com/Mr-Hu9595/jubenfenxi.git"
 BRANCH="main"
+# 镜像与超时（可通过环境变量覆盖）
+APT_MIRROR=${APT_MIRROR:-mirrors.aliyun.com}
+SECURITY_MIRROR=${SECURITY_MIRROR:-mirrors.aliyun.com}
+PIP_INDEX_URL=${PIP_INDEX_URL:-https://mirrors.aliyun.com/pypi/simple/}
+PIP_TIMEOUT=${PIP_TIMEOUT:-600}
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -153,6 +158,13 @@ if [[ "$ENABLE_HTTPS" == true ]]; then
 fi
 
 log "启动服务（Docker Compose）..."
+log "构建镜像（注入国内镜像与超时）..."
+docker compose build --progress=plain \
+  --build-arg APT_MIRROR="$APT_MIRROR" \
+  --build-arg SECURITY_MIRROR="$SECURITY_MIRROR" \
+  --build-arg PIP_INDEX_URL="$PIP_INDEX_URL" \
+  --build-arg PIP_TIMEOUT="$PIP_TIMEOUT" app
+
 docker compose up -d
 
 log "启动完成。访问方式："

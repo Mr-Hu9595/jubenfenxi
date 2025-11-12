@@ -1,7 +1,7 @@
 import json
 import os
 
-INPUT_JSON = "analysis_results_11.3.json"
+INPUT_JSON = "analysis_results.json"
 
 POSSIBLE_KEYS = [
     "剧本名",

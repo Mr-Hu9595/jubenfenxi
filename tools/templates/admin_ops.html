@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>管理员监控｜使用数据</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"PingFang SC","Microsoft YaHei",sans-serif;margin:20px;color:#222}
+    h1{font-size:20px;margin-bottom:10px}
+    .stats{display:flex;gap:20px;margin:10px 0}
+    .stat{background:#f5f7fa;border:1px solid #e5e9f2;border-radius:6px;padding:10px}
+    form.filter{display:flex;gap:10px;align-items:center;margin:10px 0}
+    input,select{padding:6px 8px;border:1px solid #cbd5e1;border-radius:4px}
+    table{width:100%;border-collapse:collapse;margin-top:10px}
+    th,td{border:1px solid #e5e7eb;padding:6px 8px;text-align:left;font-size:13px;vertical-align:top}
+    th{background:#f9fafb}
+    .detail{white-space:pre-wrap;word-break:break-word;font-family:monospace;}
+  </style>
+  <script>
+    function submitFilter(){ document.getElementById('filterForm').submit(); }
+  </script>
+  </head>
+<body>
+  <h1>管理员监控｜使用数据</h1>
+
+  <form id="filterForm" class="filter" method="get">
+    <label>开始日期：<input type="date" name="start" value="{{ start }}"></label>
+    <label>结束日期：<input type="date" name="end" value="{{ end }}"></label>
+    <label>用户ID：<input type="text" name="user_id" value="{{ filter_user_id }}" placeholder="可选"></label>
+    <button type="submit">筛选</button>
+  </form>
+
+  <div class="stats">
+    <div class="stat">总操作：<strong>{{ total_ops }}</strong></div>
+    <div class="stat">上传次数：<strong>{{ upload_count }}</strong></div>
+    <div class="stat">登录次数：<strong>{{ login_count }}</strong></div>
+    <div class="stat">活跃用户：<strong>{{ users_active }}</strong></div>
+  </div>
+
+  <p>
+    数据接口：
+    <a href="/admin/ops.json?start={{ start }}&end={{ end }}&user_id={{ filter_user_id }}" target="_blank">下载 JSON</a>
+  </p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>用户</th>
+        <th>动作</th>
+        <th>时间</th>
+        <th>详情</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in rows %}
+      <tr>
+        <td>{{ r.id }}</td>
+        <td>{{ r.username }} ({{ r.user_id }})</td>
+        <td>{{ r.action }}</td>
+        <td>{{ r.time_str }}</td>
+        <td class="detail">{{ r.detail | tojson }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <p style="margin-top:10px;">
+    注：筛选支持按日期范围与用户ID；列表显示最近200条符合条件的操作记录。
+  </p>
+</body>
+</html>

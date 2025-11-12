@@ -3,6 +3,8 @@
 __pycache__
 *.pyc
 *.pyo
+.trae/
+部署排障脚本.txt
 *.pyd
 .Python
 env/
@@ -10,7 +12,6 @@ venv/
 .venv/
 build/
 dist/
-.vercel/
 .DS_Store
 *.xlsx
 *.zip

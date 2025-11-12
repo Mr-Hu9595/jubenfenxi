@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <key>Label</key>
+    <string>com.nebula.watchpush</string>
+
+    <key>ProgramArguments</key>
+    <array>
+      <string>/bin/bash</string>
+      <!-- 将 {{PROJECT_ROOT}} 替换为你的本地项目根目录绝对路径 -->
+      <string>{{PROJECT_ROOT}}/scripts/watch_and_push.sh</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>{{PROJECT_ROOT}}</string>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+      <!-- 按需调整 PATH（Homebrew 优先） -->
+      <key>PATH</key>
+      <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+
+      <!-- 远端服务器 SSH 与部署目录（示例） -->
+      <key>SERVER</key>
+      <string>user@your-server</string>
+      <key>REMOTE_DIR</key>
+      <string>/opt/nebula</string>
+
+      <!-- 应用端口（与 Docker Compose/Flask 保持一致） -->
+      <key>PORT</key>
+      <string>5000</string>
+
+      <!-- 启用一次性执行模式（由 WatchPaths 触发后只推送一次） -->
+      <key>USE_LAUNCHD_WATCH</key>
+      <string>true</string>
+
+      <!-- 本地 Git 提交与推送（可设为 false 只 rsync） -->
+      <key>GIT_ENABLE</key>
+      <string>true</string>
+
+      <!-- 可选：镜像源与超时，提升服务器构建稳定性 -->
+      <key>PIP_INDEX_URL</key>
+      <string>https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple</string>
+      <key>PIP_TIMEOUT</key>
+      <string>180</string>
+    </dict>
+
+    <!-- 随系统加载立即运行（结合 WatchPaths 实现目录变更触发） -->
+    <key>RunAtLoad</key>
+    <true/>
+
+    <!-- 监控项目目录变更（替换为你的本地项目根） -->
+    <key>WatchPaths</key>
+    <array>
+      <string>{{PROJECT_ROOT}}</string>
+    </array>
+
+    <!-- 触发间隔（秒），避免短时间内频繁重复触发） -->
+    <key>ThrottleInterval</key>
+    <integer>10</integer>
+
+    <!-- 简单日志路径（按需调整到 ~/Library/Logs） -->
+    <key>StandardOutPath</key>
+    <string>/tmp/nebula_watch.log</string>
+    <key>StandardErrorPath</key>
+    <string>/tmp/nebula_watch.err</string>
+  </dict>
+</plist>

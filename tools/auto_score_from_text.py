@@ -377,32 +377,37 @@ def marketing_scores(title: str, text: str) -> Tuple[float, float, float]:
     rev = sum((title+text).count(k) for k in ['反转','高潮'])
     emo = sum((title+text).count(k) for k in ['虐','甜','哭'])
     slot = 3 if rev >= 5 else (2 if emo >= 3 else 2)
-    # 营销方向（3）：反转/成长/甜虐/知识/家国
-    if any(k in text for k in ['反转','成长','救赎']):
-        marketing = 3
-    elif any(k in text for k in ['甜宠','虐恋']):
-        marketing = 3
-    elif any(k in text for k in ['知识','信息量','专业']):
-        marketing = 2
-    else:
-        marketing = 2
+    # 营销方向（3）：优先使用舆情趋势方向
+    try:
+        mdir = trend_marketing_direction(text, _TREND_CFG) if _TREND_CFG else None
+        marketing = 3 if mdir in ('反转爽点','成长救赎','甜虐情绪') else 2
+    except Exception:
+        # 兜底启发式
+        if any(k in text for k in ['反转','成长','救赎']):
+            marketing = 3
+        elif any(k in text for k in ['甜宠','虐恋']):
+            marketing = 3
+        elif any(k in text for k in ['知识','信息量','专业']):
+            marketing = 2
+        else:
+            marketing = 2
     return audience, slot, marketing
 
 
 def commercial_components(title: str, text: str) -> Tuple[float, float, float, float]:
-    # 题材热度（2）：粗略以关键词热度映射
-    hot = 0
-    if any(k in (title+text) for k in ['系统','重生','逆袭','打脸','甜宠','虐恋','霸总','执法','权谋','群像','乡村']):
-        hot = 2
-    elif any(k in (title+text) for k in ['直播','网红','职场','家庭']):
-        hot = 1.5
-    else:
+    # 题材热度（2）：优先使用舆情配置映射
+    try:
+        hot = trend_hotness(title, text, _TREND_CFG) if _TREND_CFG else 1.0
+    except Exception:
         hot = 1.0
-    # 传播因子（1.5）：反转密度、情绪强度、话题词
-    rev = sum(text.count(k) for k in ['反转','高潮','出乎意料','意外'])
-    emo = sum(text.count(k) for k in ['虐','甜','哭','燃'])
-    topic = sum(text.count(k) for k in ['话题','爆点','争议'])
-    spread = max(0.5, min(1.5, rev*0.15 + emo*0.1 + topic*0.2))
+    # 传播因子（1.5）：反转密度、情绪强度、话题词（融入趋势）
+    try:
+        spread = trend_spread(title, text, _TREND_CFG) if _TREND_CFG else 0.8
+    except Exception:
+        rev = sum(text.count(k) for k in ['反转','高潮','出乎意料','意外'])
+        emo = sum(text.count(k) for k in ['虐','甜','哭','燃'])
+        topic = sum(text.count(k) for k in ['话题','爆点','争议'])
+        spread = max(0.5, min(1.5, rev*0.15 + emo*0.1 + topic*0.2))
     # 可生产性（1）：场景/演员/内外景比例近似
     scene_score, cast_score = scene_and_cast_scores(text)
     producible = max(0.3, min(1.0, (scene_score/8)*0.6 + (cast_score/7)*0.4))
@@ -459,6 +464,13 @@ def online_slot(title: str, text: str) -> str:
 
 
 def marketing_direction(text: str) -> str:
+    # 优先使用舆情配置的方向
+    try:
+        if _TREND_CFG:
+            return trend_marketing_direction(text, _TREND_CFG)
+    except Exception:
+        pass
+    # 兜底启发式
     if any(k in text for k in ['反转','打脸','逆袭']):
         return '反转爽点'
     if any(k in text for k in ['成长','救赎','弧光']):
@@ -606,3 +618,9 @@ def main():
 
 if __name__ == '__main__':
     main()
+# 舆情模块（可选导入）
+try:
+    from trending import load_trending_config, trend_hotness, trend_spread, trend_marketing_direction
+    _TREND_CFG = load_trending_config()
+except Exception:
+    _TREND_CFG = None

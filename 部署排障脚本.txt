@@ -1,0 +1,8 @@
+# 快速部署（默认 Docker Compose 重启，跳过远端单测）
+REMOTE_HOST=60.205.161.135 REMOTE_USER=root REMOTE_DIR=/opt/nebula PYTEST_CMD_REMOTE=true ./scripts/deploy.sh
+
+# 带远端部署日志（便于排障，日志保存在 /opt/nebula/logs/deploy_YYYYMMDD_HHMMSS.log）
+SERVER=root@60.205.161.135 REMOTE_DIR=/opt/nebula ./scripts/deploy_with_logs.sh
+
+# 使用方式：复制上述任一命令到本地终端执行即可。
+# 备注：本文件在部署时不会同步到远端。
